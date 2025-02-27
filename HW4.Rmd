@@ -1,0 +1,246 @@
+---
+title: "HW4"
+author: "Ishaq Malik"
+date: "2/22/25"
+output: html_document
+---
+
+## Data Structues
+## Q1
+```{r}
+library(readr)
+library(readxl)
+library(rvest)
+
+# Answer: scan, readLines, read_html, readr, and readxl functions, are all meant to read in different types of data efficeintly. These are different from previous functions we've worked with like ls which is a terminal command for listing out current options. scan() is for Reading numbers or characters in vectors. readLines() is meant for Reading text line by line in character vectors. read_html() is good for parsing web data like HTML/XML. readr is meant for fast CSV reading into dataframes and is faster than our usual read_csv() function that we work with. readxl is meant for fast Excel file reading into dataframes. 
+
+# Example of scan()
+text_data <- scan(text = "1 2 3 4 5", what = numeric())
+
+# Example of readLines()
+lines <- readLines(textConnection("This is a test\nSecond line"))
+
+# Example of read_html()
+url <- "https://www.example.com"
+html_data <- read_html(url)
+
+# Example of read_csv()
+csv_data <- read_csv("data.csv")
+
+# Example of read_excel()
+excel_data <- read_excel("data.xlsx")
+```
+
+## Q2
+```{r}
+## S3 is the most frequently used and the most simple out of the 3.It makes creating object very simple and with less programming. As a result it is very flexible but does not account for strict regulations and makes it more optimal for for quick and easy tasks.
+s3_obj <- list(name = "John", value = 1)
+class(s3_obj) <- "s3_class"
+
+# S4 is more complex and structured as it requires consistent formating through defining slots and data types. This makes it more useful for larger projects and higher level computation.
+setClass("S4Class", slots = list(name = "character", value = "numeric"))
+s4_obj <- new("S4Class", name = "John", value = 1)
+
+# R6 is the most similar to object-orientated programming in other languages through having inheritance and allowing dynamic modification of objects instead of creating copies.
+library(R6)
+MyClass <- R6Class("MyClass",
+  public = list(
+    name = NULL,
+    initialize = function(name) {
+      self$name <- name
+    }
+  )
+)
+my_r6 <- MyClass$new("Example")
+```
+
+## R Markdown
+## Q1
+"""
+I did the tutorial
+"""
+
+## Q2
+```{r}
+knitr::purl("Rmarkdown_example.html", output = "Rmarkdown_example.Rmd")
+```
+
+##Tidyverse
+```{r}
+library(dplyr)
+library(dslabs)
+data(murders)
+
+##Q1
+#d. co2 is not tidy
+
+##Q2
+#b. ChickWeight is tidy
+
+##Q3
+#c. BOD is tidy 
+
+##Q4
+#c. DNase
+#d. Formaldehyde
+
+##Q5
+murders <- mutate(murders, rate = total / population * 100000)
+
+##Q6
+murders <- mutate(murders, rank = rank(-rate))
+
+##Q7
+select(murders, state, abb)
+
+##Q8
+filter(murders, rank <= 5)
+
+##Q9
+no_south <- filter(murders, region != "South")
+nrow(no_south)
+
+##Q10
+murders_nw <- filter(murders, region %in% c("Northeast", "West"))
+nrow(murders_nw)
+
+##Q11
+my_states <- murders %>%
+  filter(region %in% c("Northeast", "West") & rate < 1) %>%
+  select(state, rate, rank)
+my_states
+```
+
+## NHANES Analysis
+```{r}
+library(NHANES)
+data(NHANES)
+
+##Q14
+ref <- NHANES %>%
+  filter(AgeDecade == " 20-29", Gender == "female") %>%
+  summarize(avg = mean(BPSysAve, na.rm = TRUE), sd = sd(BPSysAve, na.rm = TRUE))
+
+##Q15
+ref_avg <- NHANES %>%
+  filter(AgeDecade == " 20-29", Gender == "female") %>%
+  summarize(avg = mean(BPSysAve, na.rm = TRUE)) %>%
+  pull(avg)
+
+##Q16
+NHANES %>%
+  filter(AgeDecade == " 20-29", Gender == "female") %>%
+  summarize(min_bp = min(BPSysAve, na.rm = TRUE), max_bp = max(BPSysAve, na.rm = TRUE))
+
+##Q17
+NHANES %>%
+  filter(Gender == "female") %>%
+  group_by(AgeDecade) %>%
+  summarize(avg = mean(BPSysAve, na.rm = TRUE), sd = sd(BPSysAve, na.rm = TRUE))
+
+##Q18
+NHANES %>%
+  filter(Gender == "male") %>%
+  group_by(AgeDecade) %>%
+  summarize(avg = mean(BPSysAve, na.rm = TRUE), sd = sd(BPSysAve, na.rm = TRUE))
+
+##Q19
+NHANES %>%
+  group_by(AgeDecade, Gender) %>%
+  summarize(avg = mean(BPSysAve, na.rm = TRUE), sd = sd(BPSysAve, na.rm = TRUE))
+
+##Q20
+NHANES %>%
+  filter(AgeDecade == " 40-49", Gender == "male") %>%
+  group_by(Race1) %>%
+  summarize(avg_bp = mean(BPSysAve, na.rm = TRUE)) %>%
+  arrange(avg_bp)
+
+##Q21
+#b.
+
+##Q22
+murders_tibble <- as_tibble(murders)
+
+##Q23
+murders_grouped <- murders %>%
+  group_by(region)
+
+##Q24
+murders %>%
+  summarize(mean_pop = exp(mean(log(population))))
+```
+
+
+# R Packages and Shiny (50 points)
+```{r}
+library(shiny)
+library(ggplot2)
+library(datasets)
+# Question 1: Walkthrough of K Means Shiny App
+
+
+# (Document changes made at each step)
+# Changes Made to `shiny_kmeans_app.Rmd`
+
+### **Step 1: Load Required Libraries**
+- Added `library(shiny)`, `library(ggplot2)`, and `library(datasets)` to support Shiny functionality, data visualization, and dataset access.
+
+### **Step 2: Define the UI (User Interface)**
+- Included `titlePanel("K-Means Clustering")` to set the app title.
+- Added `selectInput()` dropdowns for choosing X and Y variables from `iris`.
+- Added `numericInput()` for selecting the number of clusters.
+- Defined `plotOutput("clusterPlot")` to display the clustering results.
+
+### **Step 3: Define the Server Logic**
+- Introduced `reactive()` expressions:
+  - `selectedData()` dynamically retrieves the chosen variables.
+  - `clusters()` applies `kmeans()` to selected data.
+- Implemented `renderPlot()` to display clustering results with:
+  - Data points colored by cluster assignments.
+  - Cluster centers marked distinctly.
+
+### **Step 4: Launch the Shiny App**
+- Used `shinyApp(ui = ui, server = server)` to run the app.
+
+### **Step 5: Modularizing into Functions for a Custom R Package**
+- **Created `compute_kmeans()` function:**
+  - Computes K-means clustering on input data.
+- **Created `plot_kmeans()` function:**
+  - Generates a scatter plot of clusters using the computed model.
+- **Updated the Shiny server to call these functions** instead of embedding the logic directly.
+
+### **Step 6: Created R Package `KMeansClustering`**
+- Used `devtools::create("KMeansClustering")` to generate the package structure.
+- Placed functions inside `R/compute_kmeans.R` and `R/plot_kmeans.R`.
+- Documented functions with `roxygen2`.
+- Installed and tested the package using `devtools::document()` and `devtools::install()`.
+
+### **Step 7: Added Unit Tests**
+- Created `tests/testthat/test_kmeans.R`.
+- Wrote `test_that()` checks to validate K-means clustering results.
+- Ran `devtools::test()` to ensure correctness.
+
+### **Final Adjustments**
+- Ensured the Shiny app correctly referenced the **new package functions**.
+- Verified all components were functional and optimized.
+
+# Question 2: K Means R Package
+compute_kmeans <- function(data, clusters) {
+  kmeans(data, centers = clusters)
+}
+
+plot_kmeans <- function(data, clusters) {
+  km <- compute_kmeans(data, clusters)
+  plot(data, col = km$cluster, pch = 20, cex = 2)
+  points(km$centers, pch = 4, cex = 4, lwd = 4)
+}
+
+#Question 3
+LINK HERE: 
+
+```
+
+
+
+
